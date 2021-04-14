@@ -31,7 +31,7 @@
               Login to create a datasets.
               <br /><br />
               Find out more
-              <a href="https://github.com/jsbroks/coco-annotator">Github</a>
+              <a href="https://github.com/nijie321/coco-annotator">Github</a>
             </p>
           </div>
           <!-- End of section -->
@@ -63,7 +63,7 @@
                 role="tab"
                 aria-controls="contact"
                 aria-selected="false"
-                @click="tab = 'register'"
+                @click="tab = 'register-user'"
                 ref="registerTab"
               >
                 Register
@@ -74,6 +74,7 @@
             class="tab-content panel border-bottom border-right border-left text-left"
           >
             <div
+              v-show="tab === 'login'"
               class="tab-pane fade show active"
               id="login"
               role="tabpanel"
@@ -108,7 +109,9 @@
                 </button>
               </form>
             </div>
+
             <div
+              v-show="tab === 'register-user'"
               class="tab-pane fade"
               id="register"
               role="tabpanel"

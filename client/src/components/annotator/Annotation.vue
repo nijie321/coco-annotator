@@ -488,7 +488,6 @@ export default {
     },
     onMouseEnter() {
       if (this.compoundPath == null) return;
-
       this.compoundPath.selected = true;
     },
     onMouseLeave() {

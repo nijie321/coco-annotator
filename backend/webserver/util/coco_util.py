@@ -1,7 +1,10 @@
 import pycocotools.mask as mask
+from pycocotools import _mask
+
 import numpy as np
 import shapely
 from shapely.geometry import LineString, Point
+
 
 from database import (
     fix_ids,
@@ -74,6 +77,8 @@ def paperjs_to_coco(image_width, image_height, paperjs):
     if len(segments) < 1:
         return [], 0, [0, 0, 0, 0]
 
+    print(segments, image_height, image_height)
+    
     area, bbox = get_segmentation_area_and_bbox(
         segments, image_height, image_width)
 
@@ -183,15 +188,22 @@ def paperjs_to_coco_cliptobounds(image_width, image_height, paperjs): # todo: th
         return [], 0, [0, 0, 0, 0]
 
     area, bbox = get_segmentation_area_and_bbox(
-        segments, image_height, image_width)
+          segments, image_height, image_width)
+
 
     return segments, area, bbox
 
 def get_segmentation_area_and_bbox(segmentation, image_height, image_width):
     # Convert into rle
-    rles = mask.frPyObjects(segmentation, image_height, image_width)
+    print("segmentation========================")
+    print(type(segmentation))
+    
+    rles = _mask.frPoly(segmentation, image_height, image_width)
+    # if type(segmentation) == list and len(segmentation[0]) > 4:
+    # else:
+    #     rles = mask.frPyObjects(segmentation, image_height, image_width)
     rle = mask.merge(rles)
-
+    
     return mask.area(rle), mask.toBbox(rle)
 
 

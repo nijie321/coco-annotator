@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from werkzeug.datastructures import FileStorage
 from flask import send_file
 
-from ..util import query_util, coco_util
+from ..util import query_util, coco_util, crop_image
 from database import (
     ImageModel,
     DatasetModel,
@@ -15,6 +15,8 @@ import datetime
 import os
 import io
 
+import logging
+logger = logging.getLogger('gunicorn.error')
 
 api = Namespace('image', description='Image related operations')
 
@@ -28,8 +30,8 @@ image_upload = reqparse.RequestParser()
 image_upload.add_argument('image', location='files',
                           type=FileStorage, required=True,
                           help='PNG or JPG file')
-image_upload.add_argument('folder', required=False, default='',
-                          help='Folder to insert photo into')
+image_upload.add_argument('dataset_id', required=True, type=int,
+                          help='Id of dataset to insert image into')
 
 image_download = reqparse.RequestParser()
 image_download.add_argument('asAttachment', type=bool, default=False)
@@ -41,6 +43,9 @@ copy_annotations = reqparse.RequestParser()
 copy_annotations.add_argument('category_ids', location='json', type=list,
                               required=False, default=None, help='Categories to copy')
 
+image_crop = reqparse.RequestParser()
+image_crop.add_argument('dataset_id', required=True, type=int,
+                           help='Id of dataset to crop image')
 
 @api.route('/')
 class Images(Resource):
@@ -78,34 +83,25 @@ class Images(Resource):
         args = image_upload.parse_args()
         image = args['image']
 
-        folder = args['folder']
-        if len(folder) > 0:
-            folder = folder[0].strip('/') + folder[1:]
-
-        directory = os.path.join(Config.DATASET_DIRECTORY, folder)
+        dataset_id = args['dataset_id']
+        try:
+            dataset = DatasetModel.objects.get(id=dataset_id)
+        except:
+            return {'message': 'dataset does not exist'}, 400
+        directory = dataset.directory
         path = os.path.join(directory, image.filename)
 
         if os.path.exists(path):
             return {'message': 'file already exists'}, 400
 
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
         pil_image = Image.open(io.BytesIO(image.read()))
 
-        image_model = ImageModel(
-            file_name=image.filename,
-            width=pil_image.size[0],
-            height=pil_image.size[1],
-            path=path
-        )
-
-        image_model.save()
         pil_image.save(path)
 
         image.close()
         pil_image.close()
-        return query_util.fix_ids(image_model)
+        db_image = ImageModel.create_from_path(path, dataset_id).save()
+        return db_image.id
 
 
 @api.route('/<int:image_id>')
@@ -155,6 +151,37 @@ class ImageId(Resource):
         image.update(set__deleted=True, set__deleted_date=datetime.datetime.now())
         return {"success": True}
 
+# @api.route('/crop/<int:image_id>')
+@api.route('/crop/<int:image_id>')
+class ImageCrop(Resource):
+    
+    @api.expect(image_crop)
+    @login_required
+    def post(self, image_id):
+        if current_user.is_admin:
+            args = image_crop.parse_args()
+            dataset_id = args["dataset_id"]
+            
+            image = current_user.images.filter(id=image_id, deleted=False).first()
+            path = image.path
+
+            crop_image.crop(path, dataset_id)
+            # # logger.info(f"{image.dataset_id}, {image.category_ids}, {image.dataset_id}, {image.path}")
+            # top_left_box = (0,0, crop_width, crop_height)
+            # top_right_box = (crop_width, 0, width, crop_height)
+            # bottom_left_box = (0, crop_height, crop_width, height)
+            # bottom_right_box = (crop_width, crop_height, width, height)
+
+            # pil_image.crop(top_left_box).save(os.path.join(directory, "topleft.png"))
+            # pil_image.crop(top_right_box).save(os.path.join(directory, "topright.png"))
+            # pil_image.crop(bottom_left_box).save(os.path.join(directory, "bottomleft.png"))
+            # pil_image.crop(bottom_right_box).save(os.path.join(directory, "bottomright.png"))
+            
+            return {"success": True}
+        
+        else:
+            return {"message": "No admin premission"}
+        
 
 @api.route('/copy/<int:from_id>/<int:to_id>/annotations')
 class ImageCopyAnnotations(Resource):

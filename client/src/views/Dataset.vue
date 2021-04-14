@@ -55,7 +55,7 @@
           <div v-else>
             <Pagination :pages="pages" @pagechange="updatePage" />
             <div class="row">
-              <ImageCard v-for="image in images" :key="image.id" :image="image" />
+              <ImageCard v-for="image in images" :key="image.id" :image="image" :current_user_admin="current_user_admin" :dataset_id="identifier.toString()" />
             </div>
             <Pagination :pages="pages" @pagechange="updatePage" />
           </div>
@@ -203,6 +203,8 @@
           </div>
           <div v-else>Generate</div>
         </button>
+
+        <input type="file" accept="image/*" @change="importImg" id="image-input($event)">
 
         <button
           type="button"
@@ -456,6 +458,7 @@ import TagsInput from "@/components/TagsInput";
 
 import { mapMutations } from "vuex";
 
+import axios from "axios"
 let $ = JQuery;
 
 export default {
@@ -484,6 +487,7 @@ export default {
       categories: [],
       images: [],
       folders: [],
+      current_user_admin: false,
       dataset: {
         id: 0
       },
@@ -547,6 +551,28 @@ export default {
         keywords: [this.keyword],
         limit: this.generateLimit
       });
+    },
+    importImg(event){
+      
+      let data = new FormData();
+
+      data.append('name', 'my-pic');
+      data.append('image', event.target.files[0]);
+      data.append('dataset_id', this.identifier);
+      
+      let config = {
+        header: {
+          'Content-Type': 'image/png'
+        }
+      };
+
+      axios.post(`/api/image/`, data, config)
+        .then(response => {
+          console.log('image upload > ', response);
+          this.updatePage();
+        });
+      // console.log(this.identifier);
+      // console.log(event.target.files[0]);
     },
     updatePage(page) {
       let process = "Loading images from dataset";
@@ -813,6 +839,10 @@ export default {
     if (sideWidth !== null) this.sidebar.width = parseInt(sideWidth);
     if (tab !== null) this.tab = tab;
     if (order !== null) this.order = order;
+    
+    axios.get('/api/user/').then(res => {
+      this.current_user_admin = res.data.user.is_admin;
+    });
 
     this.dataset.id = parseInt(this.identifier);
     this.updatePage();

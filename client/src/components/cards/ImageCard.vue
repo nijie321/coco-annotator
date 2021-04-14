@@ -53,6 +53,9 @@
             <button class="btn dropdown-item" @click="openAnnotator">
               Annotate
             </button>
+            <button v-if="current_user_admin" class="btn dropdown-item" @click="cropPicture">
+              Crop Picture
+            </button>
             <button
               class="btn dropdown-item"
               @click="onDownloadClick"
@@ -90,6 +93,7 @@
 
 <script>
 import axios from "axios";
+// import Dataset from "@/models/datasets";
 
 export default {
   name: "ImageCard",
@@ -97,7 +101,9 @@ export default {
     image: {
       type: Object,
       required: true
-    }
+    },
+   dataset_id: String,
+   current_user_admin: Boolean,
   },
   data() {
     return {
@@ -114,6 +120,15 @@ export default {
       document.body.appendChild(link);
       link.click();
       link.remove();
+    },
+    cropPicture(){
+      console.log(this.dataset_id);
+      console.log(this.image.id);
+      axios.post(`api/image/crop/${this.image.id}?dataset_id=${this.dataset_id}`)
+        .then(res => {
+          console.log(res);
+          this.$parent.updatePage();
+        });
     },
     openAnnotator() {
       this.$router.push({
@@ -157,8 +172,10 @@ export default {
     annotated() {
       if (!this.image.annotating) return 0;
       return this.image.annotating.length > 0;
-    }
-  }
+    },
+    // isAdmin(){
+    // },
+  },
 };
 </script>
 

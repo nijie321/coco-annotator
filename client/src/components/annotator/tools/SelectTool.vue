@@ -24,7 +24,8 @@ export default {
         indicatorWidth: 0,
         indicatorSize: 0,
         center: null,
-        canMove: false
+        canMove: false,
+        shiftOnSelect: false
       },
       hover: {
         showText: true,
@@ -45,7 +46,7 @@ export default {
         segments: true,
         stroke: true,
         fill: false,
-        tolerance: 10,
+        tolerance: 2,
         match: hit => {
           return !hit.item.hasOwnProperty("indicator");
         }
@@ -82,6 +83,7 @@ export default {
       }
 
       if (this.hover.category && this.hover.annotation) {
+        console.log("inside second if");
         let id = this.hover.textId;
         let category = this.hover.category.category.name;
         string += "ID: " + id + " \n";
@@ -95,6 +97,7 @@ export default {
         }
       }
 
+      console.log(string);
       return string.replace(/\n/g, " \n ").slice(0, -2) + " \n ";
     },
     generateStringFromMetadata() {
@@ -123,6 +126,7 @@ export default {
       }
 
       let position = this.hover.position.add(this.hover.textShift, 0);
+      // console.log(position);
 
       if (
         this.hover.text == null ||
@@ -130,11 +134,14 @@ export default {
         this.keypoint != null
       ) {
         if (this.hover.text !== null) {
+          console.log("hover text not null");
           this.hover.text.remove();
           this.hover.box.remove();
         }
         let content = this.generateTitle() + this.generateStringFromMetadata();
         if (this.hover.annotation) {
+          console.log("inside if...");
+          console.log(this.hover.annotation.annotation);
           this.hover.textId = this.hover.annotation.annotation.id;
         }
 
@@ -176,11 +183,50 @@ export default {
       let annotation = category.getAnnotation(annotationId);
       return annotation.annotation.isbbox;
     },
+
+    onKeyDown(event) {
+      if(event.key === "shift") {
+        this.edit.shiftOnSelect = true;
+      }
+    },
+
+    onKeyUp(event){
+      if(event.key === "shift") {
+        this.edit.shiftOnSelect = false;
+      }
+    },
+
     onMouseDown(event) {
+      // console.log("on mouse down called");
       let hitResult = this.$parent.paper.project.hitTest(
         event.point,
         this.hitOptions
       );
+
+
+      if(this.edit.shiftOnSelect){
+        let children = hitResult.item.parent.children;
+        
+        let temp = children.filter(item => item.__proto__.className === "CompoundPath")
+                      .map(cpath => {
+                        if(cpath.children.length !== 0){
+                          let path = cpath.children[0];
+                          if(path.contains(event.point)) return path;
+                        }
+                      })
+
+        temp.forEach(element => {
+          if(element !== undefined) {
+            let nearestLoc = element.getNearestLocation(event.point);
+
+            let indexToInsert = nearestLoc.index + 1;
+            let newPoint = event.point;
+            newPoint.selected = true;
+            element.insert(indexToInsert, newPoint);
+          }
+        });
+      }
+
 
       if (!hitResult) return;
 
@@ -272,12 +318,21 @@ export default {
       }
       
     },
+    
+    // onMouseLeave(event){
+    //   console.log("on mouse leave");
+    //   this.clear();
+    // },
 
     onMouseUp(event) {
+      console.log("on mouse up called");
       this.clear();
     },
 
-    onMouseMove(event) {
+    // onMouseMove
+    // onMouseEnter
+    onMouseMove (event) {
+      console.log("on mouse move called");
       // ensures that the initPoint is always tracked. 
       // Necessary for the introduced pan functionality and fixes a bug with selecting and dragging bboxes, since initPoint is initially undefined
       this.initPoint = event.point;  

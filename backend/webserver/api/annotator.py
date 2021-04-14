@@ -14,6 +14,10 @@ from database import (
     SessionEvent
 )
 
+import logging
+
+logger = logging.getLogger('gunicorn.error')
+
 api = Namespace('annotator', description='Annotator related operations')
 
 
@@ -72,6 +76,10 @@ class AnnotatorData(Resource):
                 counted = False
                 # Find corresponding annotation object in database
                 annotation_id = annotation.get('id')
+                
+                # logger.warning("................")
+                # logger.warning(annotation_id)
+
                 db_annotation = annotations.filter(id=annotation_id).first()
 
                 if db_annotation is None:
@@ -114,6 +122,12 @@ class AnnotatorData(Resource):
 
                     width = db_annotation.width
                     height = db_annotation.height
+
+                    # print("============================")
+                    # print(paperjs_object)
+
+
+                    # logger.warning(width, height, paperjs_object)
 
                     # Generate coco formatted segmentation data
                     segmentation, area, bbox = coco_util.\

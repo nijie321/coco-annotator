@@ -83,6 +83,10 @@ class AnnotationId(Resource):
 
     @login_required
     def delete(self, annotation_id):
+        # print("delete annotation called")
+        logger.info(
+            f'{current_user.username} has deleted an annotation {annotation_id}.'
+        )
         """ Deletes an annotation by ID """
         annotation = current_user.annotations.filter(id=annotation_id).first()
 

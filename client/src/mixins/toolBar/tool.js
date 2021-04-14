@@ -31,6 +31,10 @@ export default {
     onMouseDown() {},
     onMouseDrag() {},
     onMouseUp() {},
+    onKeyUp() {},
+    onKeyDown() {},
+    // onMouseEnter() {},
+    // onMouseLeave() {},
     click() {
       this.update();
     },
@@ -82,9 +86,13 @@ export default {
   mounted() {
     this.tool = new paper.Tool();
 
+    // this.tool.onMouseEnter = this.onMouseEnter;
+    // this.tool.onMouseLeave = this.onMouseLeave;
     this.tool.onMouseDown = this.onMouseDown;
     this.tool.onMouseDrag = this.onMouseDrag;
     this.tool.onMouseMove = this.onMouseMove;
     this.tool.onMouseUp = this.onMouseUp;
+    this.tool.onKeyDown = this.onKeyDown;
+    this.tool.onKeyUp = this.onKeyUp;
   }
 };

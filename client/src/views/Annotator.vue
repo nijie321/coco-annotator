@@ -424,6 +424,18 @@ export default {
           //TODO: updateUser
           if (callback != null) callback();
         })
+        .catch(function(err) {
+          if(err.response) {
+            console.log(err.response.data);
+            console.log(err.response.status);
+            console.log(err.response.headers);
+          }else if(err.request){
+            console.log(err.request);
+          }else{
+            console.log('Error', err.message);
+          }
+          console.log(err.config);
+        })
         .finally(() => this.removeProcess(process));
     },
     onpinchstart(e) {
