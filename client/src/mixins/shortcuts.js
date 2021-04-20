@@ -87,6 +87,20 @@ export default {
           function: this.previousImage
         },
         {
+          default: ["l"],
+          name: "Hide All Live Annotations",
+          function: () =>{
+            this.$refs.category[0].isVisible = !this.$refs.category[0].isVisible;
+          }
+        },
+        {
+          default: ["o"],
+          name: "Hide All Necrotic Annotations",
+          function: () =>{
+            this.$refs.category[1].isVisible = !this.$refs.category[1].isVisible;
+          }
+        },
+        {
           default: ["v"],
           name: "Polygon Tool",
           function: () => {

@@ -83,7 +83,7 @@ export default {
       }
 
       if (this.hover.category && this.hover.annotation) {
-        console.log("inside second if");
+        // console.log("inside second if");
         let id = this.hover.textId;
         let category = this.hover.category.category.name;
         string += "ID: " + id + " \n";
@@ -97,7 +97,7 @@ export default {
         }
       }
 
-      console.log(string);
+      // console.log(string);
       return string.replace(/\n/g, " \n ").slice(0, -2) + " \n ";
     },
     generateStringFromMetadata() {
@@ -126,7 +126,6 @@ export default {
       }
 
       let position = this.hover.position.add(this.hover.textShift, 0);
-      // console.log(position);
 
       if (
         this.hover.text == null ||
@@ -134,14 +133,12 @@ export default {
         this.keypoint != null
       ) {
         if (this.hover.text !== null) {
-          console.log("hover text not null");
           this.hover.text.remove();
           this.hover.box.remove();
         }
         let content = this.generateTitle() + this.generateStringFromMetadata();
         if (this.hover.annotation) {
-          console.log("inside if...");
-          console.log(this.hover.annotation.annotation);
+          // console.log(this.hover.annotation.annotation);
           this.hover.textId = this.hover.annotation.annotation.id;
         }
 
@@ -319,20 +316,13 @@ export default {
       
     },
     
-    // onMouseLeave(event){
-    //   console.log("on mouse leave");
-    //   this.clear();
-    // },
-
     onMouseUp(event) {
-      console.log("on mouse up called");
       this.clear();
     },
 
     // onMouseMove
     // onMouseEnter
     onMouseMove (event) {
-      console.log("on mouse move called");
       // ensures that the initPoint is always tracked. 
       // Necessary for the introduced pan functionality and fixes a bug with selecting and dragging bboxes, since initPoint is initially undefined
       this.initPoint = event.point;  

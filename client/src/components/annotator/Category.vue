@@ -358,6 +358,7 @@ export default {
           });
         }
     },
+
     /**
      * Event handler for keypoint click
      */
